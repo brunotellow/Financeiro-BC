@@ -250,6 +250,7 @@ async function loadDashboard(){
     };
     return labels[key]||c;
   };
+  window.categoryLabel=categoryLabel;
   const categoryColor=c=>{
     const key=String(c||"outros").toLowerCase().trim();
     return categoryColors[key]||"#E09A4F";
