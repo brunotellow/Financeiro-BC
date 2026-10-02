@@ -170,13 +170,13 @@ async function loadDashboard(){
   const entradas=current.filter(r=>r.tipo==="entrada"&&r.categoria!=="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const saidas=current.filter(r=>r.tipo==="saida").reduce((a,r)=>a+Number(r.valor),0);
   const saldoInicial=Number(cfg.saldo_inicial||0);
-  const saldo=saldoInicial+before+entradas-saidas;
+  const saldo=saldoInicial+before+entradas+cashback-saidas;
   document.getElementById("saldo").textContent=money(saldo);
   document.getElementById("entradas").textContent=money(entradas);
-  document.getElementById("cashback").textContent=money(cashback);
   document.getElementById("saidas").textContent=money(saidas);
-  document.getElementById("resultado").textContent=money(entradas-saidas);
-  document.getElementById("resultado").className="value "+((entradas-saidas)>=0?"positive":"negative");
+  const resultado=entradas+cashback-saidas;
+  document.getElementById("resultado").textContent=money(resultado);
+  document.getElementById("resultado").className="value "+(resultado>=0?"positive":"negative");
 
   const entradasPrevistasMes=(entradasPrevistas||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
   const totalEntradaPrevista=entradasPrevistasMes.reduce((a,p)=>a+Number(p.valor),0);
