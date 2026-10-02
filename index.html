@@ -129,7 +129,7 @@ async function loadDashboard(){
     ? `Total previsto para este mês: <b>${money(totalPrevisto)}</b> · ${previstosMes.length} pagamento(s) pendente(s)`
     : "Nenhum gasto previsto pendente para este mês.";
   document.getElementById("previstos").innerHTML=previstosMes.length
-    ? `<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${previstosMes.map(p=>{
+    ? `<table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${previstosMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
         return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td></tr>`;
       }).join("")}</tbody></table>`
