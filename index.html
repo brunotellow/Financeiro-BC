@@ -13,7 +13,7 @@
 <title>Financeiro B&L</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#17191c;font-family:Inter,Arial,sans-serif}
+*{box-sizing:border-box}html{min-height:100%;background:#f5f6f8}body{margin:0;min-height:100dvh;padding-top:env(safe-area-inset-top);overscroll-behavior-y:none;background:#f5f6f8;color:#17191c;font-family:Inter,Arial,sans-serif}
 .wrap{max-width:1200px;margin:0 auto;padding:32px}.login{max-width:420px;margin:12vh auto;background:#fff;padding:32px;border:1px solid #e7e8eb;border-radius:18px}.login h1{margin-top:0}
 input,select{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;background:#fff;margin:7px 0 14px}
 button{padding:12px 16px;border:0;border-radius:10px;background:#17191c;color:#fff;cursor:pointer;width:100%}
@@ -36,7 +36,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}
 .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media(max-width:600px){
-  .wrap{padding:calc(14px + env(safe-area-inset-top)) 14px 14px}
+  .wrap{padding:14px}
   header{align-items:flex-start;gap:14px;flex-direction:column;margin-bottom:18px}
   h1{font-size:24px}
   .top-actions{width:100%;display:grid;grid-template-columns:1fr auto}
