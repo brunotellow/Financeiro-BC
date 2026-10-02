@@ -196,9 +196,9 @@ async function loadDashboard(){
     ? `Total previsto para este mês: <b>${money(totalPrevisto)}</b> · ${previstosMes.length} pagamento(s) pendente(s)`
     : "Nenhum gasto previsto pendente para este mês.";
   document.getElementById("previstos").innerHTML=previstosMes.length
-    ? `<table><thead><tr><th>Descrição</th><th>Vencimento</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${previstosMes.map(p=>{
+    ? `<table><thead><tr><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Categoria</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${previstosMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarGastoPrevisto(${p.id})">Pago</button></td></tr>`;
+        return `<tr><td>${esc(p.descricao)}</td><td class="negative">- ${money(p.valor)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.categoria||"")}</td><td>${parcela}</td><td><button onclick="confirmarGastoPrevisto(${p.id})">Pago</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
   document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
