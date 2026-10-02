@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#17191c">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111315" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Financeiro BC">
@@ -50,6 +51,18 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
   .donut::after{inset:34px}
   table{min-width:560px}
   th,td{padding:10px 7px;font-size:12px}
+}
+@media(prefers-color-scheme:dark){
+  body{background:#111315;color:#f2f3f5}
+  .login,.card{background:#1a1d20;border-color:#2b2f33}
+  .sub,.label,th{color:#9ca3ab}
+  input,select{background:#1a1d20;color:#f2f3f5;border-color:#3a3f44}
+  button{background:#f2f3f5;color:#111315}
+  .logout{background:#1a1d20;color:#f2f3f5;border-color:#3a3f44}
+  .donut::after{background:#1a1d20}
+  .donut-center,.category-value{color:#f2f3f5}
+  .category-name{color:#c1c5ca}
+  th,td{border-bottom-color:#2b2f33}
 }
 @media(max-width:390px){
   .grid{grid-template-columns:1fr}
