@@ -285,7 +285,7 @@ function renderLancamentos(){
   const rows=window.lancamentosMes||[];
   const filtro=document.getElementById("filtroCategoria")?.value||"";
   const lancamentosMes=rows.filter(r=>!filtro||String(r.categoria||"Outros")===filtro);
-  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`}).join("");
+  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${esc(r.descricao)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`}).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
 </script>
