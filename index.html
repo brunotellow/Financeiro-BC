@@ -2,7 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17191c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Financeiro BC">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
 <title>Financeiro BC</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -26,7 +32,30 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 .category-value{font-weight:700;color:#17191c}
 .category-percent{color:#777;margin-left:5px;font-weight:400}
 @media(max-width:850px){.category-chart{grid-template-columns:150px 1fr;gap:12px}.donut{width:145px;height:145px}.donut::after{inset:32px}}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
+table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:600px){
+  .wrap{padding:14px}
+  header{align-items:flex-start;gap:14px;flex-direction:column;margin-bottom:18px}
+  h1{font-size:24px}
+  .top-actions{width:100%;display:grid;grid-template-columns:1fr auto}
+  .top-actions select{width:100%}
+  .grid{grid-template-columns:1fr 1fr;gap:10px}
+  .card{padding:15px;border-radius:14px}
+  .value{font-size:20px}
+  .main{gap:10px;margin-top:10px}
+  .category-chart{grid-template-columns:1fr;min-height:0}
+  .category-legend{max-height:240px}
+  .donut{width:150px;height:150px}
+  .donut::after{inset:34px}
+  table{min-width:560px}
+  th,td{padding:10px 7px;font-size:12px}
+}
+@media(max-width:390px){
+  .grid{grid-template-columns:1fr}
+  .top-actions{grid-template-columns:1fr}
+  .logout{width:100%}
+}th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
 </style>
 </head>
@@ -59,16 +88,16 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px
 <section class="card" style="margin-top:16px">
 <h2>Entradas previstas</h2>
 <div id="entradasPrevistasResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
-<div id="entradasPrevistas"></div>
+<div id="entradasPrevistas" class="table-scroll"></div>
 </section>
 <section class="card" style="margin-top:16px">
 <h2>Gastos previstos</h2>
 <div id="previstosResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
-<div id="previstos"></div>
+<div id="previstos" class="table-scroll"></div>
 </section>
 <section class="card" style="margin-top:16px"><h2>Últimos lançamentos</h2>
-<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
-<tbody id="lancamentos"></tbody></table>
+<div class="table-scroll"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
+<tbody id="lancamentos"></tbody></table></div>
 </section>
 </div>
 
