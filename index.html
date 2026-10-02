@@ -57,6 +57,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px
 <div class="card"><h2>Gastos por categoria</h2><div id="categorias">Carregando...</div></div>
 </section>
 <section class="card" style="margin-top:16px">
+<h2>Entradas previstas</h2>
+<div id="entradasPrevistasResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
+<div id="entradasPrevistas"></div>
+</section>
+<section class="card" style="margin-top:16px">
 <h2>Gastos previstos</h2>
 <div id="previstosResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
 <div id="previstos"></div>
@@ -105,6 +110,12 @@ async function loadDashboard(){
   const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento").order("data",{ascending:false}).order("id",{ascending:false});
   if(error){document.getElementById("resumo").textContent=error.message;return;}
 
+  const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").eq("status","pendente").order("data_prevista",{ascending:true}).order("id",{ascending:true});
+  if(epe){
+    document.getElementById("entradasPrevistasResumo").textContent="Não foi possível carregar as entradas previstas.";
+    document.getElementById("entradasPrevistas").innerHTML="";
+  }
+
   const {data:previstos,error:pe}=await client.from("gastos_previstos").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").eq("status","pendente").order("data_prevista",{ascending:true}).order("id",{ascending:true});
   if(pe){
     document.getElementById("previstosResumo").textContent="Não foi possível carregar os gastos previstos.";
@@ -122,6 +133,18 @@ async function loadDashboard(){
   document.getElementById("saidas").textContent=money(saidas);
   document.getElementById("resultado").textContent=money(entradas-saidas);
   document.getElementById("resultado").className="value "+((entradas-saidas)>=0?"positive":"negative");
+
+  const entradasPrevistasMes=(entradasPrevistas||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
+  const totalEntradaPrevista=entradasPrevistasMes.reduce((a,p)=>a+Number(p.valor),0);
+  document.getElementById("entradasPrevistasResumo").innerHTML=entradasPrevistasMes.length
+    ? `Total previsto para este mês: <b class="positive">${money(totalEntradaPrevista)}</b> · ${entradasPrevistasMes.length} recebimento(s) pendente(s)`
+    : "Nenhuma entrada prevista pendente para este mês.";
+  document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
+    ? `<table><thead><tr><th>Recebimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
+        const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
+        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td></tr>`;
+      }).join("")}</tbody></table>`
+    : "";
 
   const previstosMes=(previstos||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
   const totalPrevisto=previstosMes.reduce((a,p)=>a+Number(p.valor),0);
