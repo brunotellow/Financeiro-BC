@@ -91,6 +91,7 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
 <section class="grid">
 <div class="card"><div class="label">Saldo atual</div><div id="saldo" class="value">R$ 0,00</div></div>
 <div class="card"><div class="label">Entradas</div><div id="entradas" class="value">R$ 0,00</div></div>
+<div class="card"><div class="label">Cashback</div><div id="cashback" class="value">R$ 0,00</div></div>
 <div class="card"><div class="label">Saídas</div><div id="saidas" class="value">R$ 0,00</div></div>
 <div class="card"><div class="label">Resultado do mês</div><div id="resultado" class="value">R$ 0,00</div></div>
 </section>
@@ -166,12 +167,14 @@ async function loadDashboard(){
 
   const before=rows.filter(r=>r.data<start).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
   const current=rows.filter(r=>r.data>=start&&r.data<end);
-  const entradas=current.filter(r=>r.tipo==="entrada").reduce((a,r)=>a+Number(r.valor),0);
+  const cashback=current.filter(r=>r.tipo==="entrada"&&r.categoria==="cashback").reduce((a,r)=>a+Number(r.valor),0);
+  const entradas=current.filter(r=>r.tipo==="entrada"&&r.categoria!=="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const saidas=current.filter(r=>r.tipo==="saida").reduce((a,r)=>a+Number(r.valor),0);
   const saldoInicial=Number(cfg.saldo_inicial||0);
   const saldo=saldoInicial+before+entradas-saidas;
   document.getElementById("saldo").textContent=money(saldo);
   document.getElementById("entradas").textContent=money(entradas);
+  document.getElementById("cashback").textContent=money(cashback);
   document.getElementById("saidas").textContent=money(saidas);
   document.getElementById("resultado").textContent=money(entradas-saidas);
   document.getElementById("resultado").className="value "+((entradas-saidas)>=0?"positive":"negative");
@@ -199,7 +202,7 @@ async function loadDashboard(){
         return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td></tr>`;
       }).join("")}</tbody></table>`
     : "";
-  document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
+  document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
 
   const cats={};current.filter(r=>r.tipo==="saida").forEach(r=>cats[r.categoria||"Outros"]=(cats[r.categoria||"Outros"]||0)+Number(r.valor));
   const total=Object.values(cats).reduce((a,b)=>a+b,0);
