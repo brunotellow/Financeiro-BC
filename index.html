@@ -184,9 +184,9 @@ async function loadDashboard(){
     ? `Total previsto para este mês: <b class="positive">${money(totalEntradaPrevista)}</b> · ${entradasPrevistasMes.length} recebimento(s) pendente(s)`
     : "Nenhuma entrada prevista pendente para este mês.";
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
-    ? `<table><thead><tr><th>Recebimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
+    ? `<table><thead><tr><th>Recebimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td></tr>`;
+        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
@@ -196,9 +196,9 @@ async function loadDashboard(){
     ? `Total previsto para este mês: <b>${money(totalPrevisto)}</b> · ${previstosMes.length} pagamento(s) pendente(s)`
     : "Nenhum gasto previsto pendente para este mês.";
   document.getElementById("previstos").innerHTML=previstosMes.length
-    ? `<table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${previstosMes.map(p=>{
+    ? `<table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${previstosMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td></tr>`;
+        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarGastoPrevisto(${p.id})">Pago</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
   document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
@@ -282,6 +282,29 @@ async function loadDashboard(){
   const nomeMes=document.getElementById("month").selectedOptions[0]?.textContent?.split(" de ")[0]||"";
   document.getElementById("lancamentosTitulo").textContent=`Lançamentos ${nomeMes.charAt(0).toUpperCase()+nomeMes.slice(1)}`;
   renderLancamentos();
+}
+
+async function confirmarEntradaPrevista(id){
+  if(!confirm("Registrar esta entrada como recebida?")) return;
+  const {data:p,error:e}=await client.from("entradas_previstas").select("*").eq("id",id).single();
+  if(e||!p){alert("Não foi possível localizar a entrada prevista.");return;}
+  const hoje=new Date().toISOString().slice(0,10);
+  const {data:l,error:le}=await client.from("lancamentos").insert({tipo:"entrada",valor:p.valor,descricao:p.descricao,categoria:p.categoria||"Receita",data:hoje,parcelado:p.parcelado||false,parcela_atual:p.parcela_atual||null,total_parcelas:p.total_parcelas||null,afeta_saldo:true}).select("id").single();
+  if(le||!l){alert("Não foi possível criar o lançamento.");return;}
+  const {error:ue}=await client.from("entradas_previstas").update({status:"recebido",recebido_em:hoje,lancamento_id:l.id}).eq("id",id);
+  if(ue){alert("O lançamento foi criado, mas não foi possível dar baixa na previsão: "+ue.message);return;}
+  await loadDashboard();
+}
+async function confirmarGastoPrevisto(id){
+  if(!confirm("Registrar este gasto como pago?")) return;
+  const {data:p,error:e}=await client.from("gastos_previstos").select("*").eq("id",id).single();
+  if(e||!p){alert("Não foi possível localizar o gasto previsto.");return;}
+  const hoje=new Date().toISOString().slice(0,10);
+  const {data:l,error:le}=await client.from("lancamentos").insert({tipo:"saida",valor:p.valor,descricao:p.descricao,categoria:p.categoria||"Outros",data:hoje,parcelado:p.parcelado||false,parcela_atual:p.parcela_atual||null,total_parcelas:p.total_parcelas||null,afeta_saldo:true}).select("id").single();
+  if(le||!l){alert("Não foi possível criar o lançamento.");return;}
+  const {error:ue}=await client.from("gastos_previstos").update({status:"pago",pago_em:hoje,lancamento_id:l.id}).eq("id",id);
+  if(ue){alert("O lançamento foi criado, mas não foi possível dar baixa na previsão: "+ue.message);return;}
+  await loadDashboard();
 }
 function renderLancamentos(){
   const rows=window.lancamentosMes||[];
