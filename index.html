@@ -169,9 +169,9 @@ function fillMonths(){
   for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
 }
 function playDashboardIntro(){
-  const played=sessionStorage.getItem("financeiroIntroPlayed")==="1";
-  if(played)return;
-  sessionStorage.setItem("financeiroIntroPlayed","1");
+  if(window.dashboardIntroPlayed)return;
+  window.dashboardIntroPlayed=true;
+  window.dashboardIntroActive=true;
   const blocks=[
     ["#dashboardGrid",0],
     ["#dashboardMain",.14],
@@ -270,7 +270,7 @@ async function loadDashboard(){
     const donutId="donut-"+Date.now();
     document.getElementById("categorias").innerHTML=`<div class="category-chart"><div id="${donutId}" class="donut donut-intro"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
     const donut=document.getElementById(donutId);
-    const introPlayed=sessionStorage.getItem("financeiroIntroPlayed")==="1";
+    const introPlayed=window.dashboardIntroActive===true;
     if(!introPlayed){
       donut.style.background="conic-gradient(#dfe4ea 0deg 360deg)";
       const duration=1800, startTime=performance.now();
@@ -304,6 +304,7 @@ async function loadDashboard(){
   const nomeMes=document.getElementById("month").selectedOptions[0]?.textContent?.split(" de ")[0]||"";
   document.getElementById("lancamentosTitulo").textContent=`Lançamentos ${nomeMes.charAt(0).toUpperCase()+nomeMes.slice(1)}`;
   renderLancamentos();
+  window.dashboardIntroActive=false;
 }
 
 async function confirmarEntradaPrevista(id){
