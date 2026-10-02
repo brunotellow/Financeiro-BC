@@ -70,7 +70,11 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
   .logout{width:100%}
 }th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
- .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.mov-arrow{font-weight:800;font-size:16px;display:inline-block;line-height:1}.mov-arrow.entrada{color:#2f855a}.mov-arrow.saida{color:#c0392b}.categoria-tag{display:inline-block;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:5px 9px;border-radius:999px}</style>
+ .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.dashboard-animate{opacity:0;transform:translateY(18px) scale(.985);animation:dashboardIn .65s cubic-bezier(.22,.8,.28,1) forwards}
+@keyframes dashboardIn{to{opacity:1;transform:translateY(0) scale(1)}}
+.donut-intro{animation:donutIn 1.8s cubic-bezier(.2,.75,.25,1) forwards;transform-origin:center}
+@keyframes donutIn{0%{opacity:0;transform:scale(.72) rotate(-90deg)}55%{opacity:1;transform:scale(1.03) rotate(18deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
+@media(prefers-reduced-motion:reduce){.dashboard-animate,.donut-intro{animation:none!important;opacity:1!important;transform:none!important}}.mov-arrow{font-weight:800;font-size:16px;display:inline-block;line-height:1}.mov-arrow.entrada{color:#2f855a}.mov-arrow.saida{color:#c0392b}.categoria-tag{display:inline-block;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:5px 9px;border-radius:999px}</style>
 </head>
 <body>
 
@@ -88,27 +92,27 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
 <div><h1>Financeiro B&L</h1><div class="sub">Visão geral das suas finanças</div><div class="versiculo">“Entregue o seu caminho ao Senhor; confie nele, e ele agirá.” <span>Salmos 37:5</span></div></div>
 <div class="top-actions"><select id="month" onchange="loadDashboard()"></select><button class="logout" onclick="logout()">Sair</button></div>
 </header>
-<section class="grid">
+<section id="dashboardGrid" class="grid">
 <div class="card"><div class="label">Saldo atual</div><div id="saldo" class="value">R$ 0,00</div></div>
 <div class="card"><div class="label">Entradas</div><div id="entradas" class="value positive">R$ 0,00</div></div>
 <div class="card"><div class="label">Saídas</div><div id="saidas" class="value negative">R$ 0,00</div></div>
 <div class="card"><div class="label">Resultado do mês</div><div id="resultado" class="value">R$ 0,00</div></div>
 </section>
-<section class="main">
+<section id="dashboardMain" class="main">
 <div class="card"><h2>Resumo do mês</h2><div id="resumo">Carregando...</div></div>
 <div class="card"><h2>Gastos por categoria</h2><div id="categorias">Carregando...</div></div>
 </section>
-<section class="card" style="margin-top:16px">
+<section id="dashboardEntradas" class="card" style="margin-top:16px">
 <h2>Entradas previstas</h2>
 <div id="entradasPrevistasResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
 <div id="entradasPrevistas" class="table-scroll"></div>
 </section>
-<section class="card" style="margin-top:16px">
+<section id="dashboardGastos" class="card" style="margin-top:16px">
 <h2>Gastos previstos</h2>
 <div id="previstosResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
 <div id="previstos" class="table-scroll"></div>
 </section>
-<section class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px"><h2 id="lancamentosTitulo" style="margin:0">Lançamentos</h2><select id="filtroCategoria" onchange="renderLancamentos()" style="width:auto;min-width:180px;margin:0"><option value="">Todas as categorias</option></select></div>
+<section id="dashboardLancamentos" class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px"><h2 id="lancamentosTitulo" style="margin:0">Lançamentos</h2><select id="filtroCategoria" onchange="renderLancamentos()" style="width:auto;min-width:180px;margin:0"><option value="">Todas as categorias</option></select></div>
 <div class="table-scroll"><table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Categoria</th></tr></thead>
 <tbody id="lancamentos"></tbody></table></div>
 </section>
@@ -157,12 +161,30 @@ async function logout(){await client.auth.signOut();location.reload();}
 async function showApp(){
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  fillMonths(); await loadDashboard();
+  fillMonths(); playDashboardIntro(); await loadDashboard();
 }
 function fillMonths(){
   const s=document.getElementById("month");s.innerHTML="";
   const now=new Date();
   for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
+}
+function playDashboardIntro(){
+  const played=sessionStorage.getItem("financeiroIntroPlayed")==="1";
+  if(played)return;
+  sessionStorage.setItem("financeiroIntroPlayed","1");
+  const blocks=[
+    ["#dashboardGrid",0],
+    ["#dashboardMain",.14],
+    ["#dashboardEntradas",.28],
+    ["#dashboardGastos",.42],
+    ["#dashboardLancamentos",.56]
+  ];
+  blocks.forEach(([sel,delay])=>{
+    const el=document.querySelector(sel);
+    if(!el)return;
+    el.style.animationDelay=delay+"s";
+    el.classList.add("dashboard-animate");
+  });
 }
 async function loadDashboard(){
   const month=document.getElementById("month").value;
@@ -245,7 +267,32 @@ async function loadDashboard(){
       const color=categoryColor(c);
       return `<div class="category-item"><span class="category-dot" style="background:${color}"></span><span class="category-name">${esc(categoryLabel(c))}</span><span class="category-value">${money(v)} <span class="category-percent">${pct.toFixed(1).replace(".",",")}%</span></span></div>`;
     }).join("");
-    document.getElementById("categorias").innerHTML=`<div class="category-chart"><div class="donut" style="background:conic-gradient(${stops})"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
+    const donutId="donut-"+Date.now();
+    document.getElementById("categorias").innerHTML=`<div class="category-chart"><div id="${donutId}" class="donut donut-intro"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
+    const donut=document.getElementById(donutId);
+    const introPlayed=sessionStorage.getItem("financeiroIntroPlayed")==="1";
+    if(!introPlayed){
+      donut.style.background="conic-gradient(#dfe4ea 0deg 360deg)";
+      const duration=1800, startTime=performance.now();
+      const animateDonut=(now)=>{
+        const progress=Math.min((now-startTime)/duration,1);
+        const eased=1-Math.pow(1-progress,3);
+        const visible=entries.map(([cat,value],i)=>{
+          const pct=value/total*100;
+          const from=entries.slice(0,i).reduce((a,[,v])=>a+v,0)/total*360;
+          const to=from+pct*3.6*eased;
+          return `${categoryColor(cat)} ${from}deg ${Math.min(to,360)}deg`;
+        });
+        const used=entries.reduce((a,[,v])=>a+v,0)/total*360*eased;
+        donut.style.background=`conic-gradient(${visible.join(",")}, #dfe4ea ${used}deg 360deg)`;
+        if(progress<1)requestAnimationFrame(animateDonut);
+        else donut.style.background=`conic-gradient(${stops})`;
+      };
+      requestAnimationFrame(animateDonut);
+    }else{
+      donut.style.background=`conic-gradient(${stops})`;
+      donut.classList.remove("donut-intro");
+    }
   }
 
   window.lancamentosMes=current;
