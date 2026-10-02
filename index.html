@@ -70,7 +70,7 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
   .logout{width:100%}
 }th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
- .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.categoria-tag{display:inline-block;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:5px 9px;border-radius:999px}</style>
+ .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.mov-arrow{font-weight:800;font-size:16px;display:inline-block;line-height:1}.mov-arrow.entrada{color:#2f855a}.mov-arrow.saida{color:#c0392b}.categoria-tag{display:inline-block;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:5px 9px;border-radius:999px}</style>
 </head>
 <body>
 
@@ -285,7 +285,7 @@ function renderLancamentos(){
   const rows=window.lancamentosMes||[];
   const filtro=document.getElementById("filtroCategoria")?.value||"";
   const lancamentosMes=rows.filter(r=>!filtro||String(r.categoria||"Outros")===filtro);
-  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td></tr>`}).join("");
+  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td><span class="mov-arrow ${r.tipo==="entrada"?"entrada":"saida"}">${r.tipo==="entrada"?"↑":"↓"}</span> ${esc(r.descricao)}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td></tr>`}).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
 </script>
