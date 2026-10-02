@@ -133,6 +133,7 @@ const categoryColors={
   cuidados_pessoais:"#B46AC8",lazer:"#C979B5","bem estar":"#B56FC7",carro:"#557BC4",
   outros:"#E09A4F"
 };
+const categoryColor=c=>categoryColors[String(c||"outros").toLowerCase().trim()]||"#E09A4F";
 const categoryLabel=c=>{
   const key=String(c||"outros").toLowerCase().trim();
   const labels={mercado:"Mercado",supermercado:"Mercado",dividas:"Dívidas",dívidas:"Dívidas",
@@ -208,7 +209,7 @@ async function loadDashboard(){
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=(window.categoryColors&&window.categoryColors[cat.toLowerCase().trim()])||"#E09A4F"; return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=(window.categoryColors&&window.categoryColors[cat.toLowerCase().trim()])||"#E09A4F"; return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
