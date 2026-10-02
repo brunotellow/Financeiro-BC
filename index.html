@@ -56,6 +56,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px
 <div class="card"><h2>Resumo do mês</h2><div id="resumo">Carregando...</div></div>
 <div class="card"><h2>Gastos por categoria</h2><div id="categorias">Carregando...</div></div>
 </section>
+<section class="card" style="margin-top:16px">
+<h2>Gastos previstos</h2>
+<div id="previstosResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
+<div id="previstos"></div>
+</section>
 <section class="card" style="margin-top:16px"><h2>Últimos lançamentos</h2>
 <table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
 <tbody id="lancamentos"></tbody></table>
@@ -100,6 +105,12 @@ async function loadDashboard(){
   const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento").order("data",{ascending:false}).order("id",{ascending:false});
   if(error){document.getElementById("resumo").textContent=error.message;return;}
 
+  const {data:previstos,error:pe}=await client.from("gastos_previstos").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").eq("status","pendente").order("data_prevista",{ascending:true}).order("id",{ascending:true});
+  if(pe){
+    document.getElementById("previstosResumo").textContent="Não foi possível carregar os gastos previstos.";
+    document.getElementById("previstos").innerHTML="";
+  }
+
   const before=rows.filter(r=>r.data<start).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
   const current=rows.filter(r=>r.data>=start&&r.data<end);
   const entradas=current.filter(r=>r.tipo==="entrada").reduce((a,r)=>a+Number(r.valor),0);
@@ -112,6 +123,17 @@ async function loadDashboard(){
   document.getElementById("resultado").textContent=money(entradas-saidas);
   document.getElementById("resultado").className="value "+((entradas-saidas)>=0?"positive":"negative");
 
+  const previstosMes=(previstos||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
+  const totalPrevisto=previstosMes.reduce((a,p)=>a+Number(p.valor),0);
+  document.getElementById("previstosResumo").innerHTML=previstosMes.length
+    ? `Total previsto para este mês: <b>${money(totalPrevisto)}</b> · ${previstosMes.length} pagamento(s) pendente(s)`
+    : "Nenhum gasto previsto pendente para este mês.";
+  document.getElementById("previstos").innerHTML=previstosMes.length
+    ? `<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th></tr></thead><tbody>${previstosMes.map(p=>{
+        const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
+        return `<tr><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.descricao)}</td><td>${esc(p.categoria||"")}</td><td class="negative">- ${money(p.valor)}</td><td>${parcela}</td></tr>`;
+      }).join("")}</tbody></table>`
+    : "";
   document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
 
   const cats={};current.filter(r=>r.tipo==="saida").forEach(r=>cats[r.categoria||"Outros"]=(cats[r.categoria||"Outros"]||0)+Number(r.valor));
