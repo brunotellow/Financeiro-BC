@@ -234,7 +234,7 @@ async function loadDashboard(){
   }
 
   const lancamentosMes=current;
-  const nomeMes=new Date(y,m,1).toLocaleDateString("pt-BR",{month:"long"});
+  const nomeMes=document.getElementById("month").selectedOptions[0]?.textContent?.split(" de ")[0]||"";
   document.getElementById("lancamentosTitulo").textContent=`Lançamentos ${nomeMes.charAt(0).toUpperCase()+nomeMes.slice(1)}`;
   document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>`<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td>${esc(r.categoria)}</td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`).join("");
 }
