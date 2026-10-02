@@ -133,7 +133,7 @@ const categoryColors={
   cuidados_pessoais:"#B46AC8",lazer:"#C979B5","bem estar":"#B56FC7",carro:"#557BC4",
   outros:"#E09A4F"
 };
-const categoryColor=c=>categoryColors[String(c||"outros").toLowerCase().trim()]||"#E09A4F";
+const categoryColor=c=>{const key=String(c||"outros").toLowerCase().trim();return categoryColors[key]||"#E09A4F";};
 const categoryLabel=c=>{
   const key=String(c||"outros").toLowerCase().trim();
   const labels={mercado:"Mercado",supermercado:"Mercado",dividas:"Dívidas",dívidas:"Dívidas",
@@ -209,7 +209,7 @@ async function loadDashboard(){
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=(window.categoryColors&&window.categoryColors[cat.toLowerCase().trim()])||"#E09A4F"; return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
@@ -221,7 +221,7 @@ async function loadDashboard(){
   document.getElementById("previstos").innerHTML=previstosMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Parcela</th><th>Categoria</th><th>Ação</th></tr></thead><tbody>${previstosMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=(window.categoryColors&&window.categoryColors[cat.toLowerCase().trim()])||"#E09A4F"; return `<tr><td>${esc(p.descricao)}</td><td class="negative">- ${money(p.valor)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${parcela}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td><button onclick="confirmarGastoPrevisto(${p.id})">Pago</button></td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td>${esc(p.descricao)}</td><td class="negative">- ${money(p.valor)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${parcela}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td><button onclick="confirmarGastoPrevisto(${p.id})">Pago</button></td></tr>`;
       }).join("")}</tbody></table>`
     : "";
   document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
@@ -285,7 +285,7 @@ function renderLancamentos(){
   const rows=window.lancamentosMes||[];
   const filtro=document.getElementById("filtroCategoria")?.value||"";
   const lancamentosMes=rows.filter(r=>!filtro||String(r.categoria||"Outros")===filtro);
-  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=(window.categoryColors&&window.categoryColors[cat.toLowerCase().trim()])||"#E09A4F";return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`}).join("");
+  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`}).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
 </script>
