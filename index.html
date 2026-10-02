@@ -166,7 +166,7 @@ async function loadDashboard(){
 
   const before=rows.filter(r=>r.data<start&&r.afeta_saldo!==false).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
   const current=rows.filter(r=>r.data>=start&&r.data<end);
-  const cashback=current.filter(r=>r.tipo==="entrada"&&r.categoria==="cashback").reduce((a,r)=>a+Number(r.valor),0);
+  const cashback=current.filter(r=>r.tipo==="entrada"&&String(r.categoria||"").toLowerCase()==="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const entradas=current.filter(r=>r.tipo==="entrada"&&r.categoria!=="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const saidas=current.filter(r=>r.tipo==="saida").reduce((a,r)=>a+Number(r.valor),0);
   const saldoInicial=Number(cfg.saldo_inicial||0);
