@@ -108,7 +108,7 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
 <div id="previstosResumo" class="sub" style="margin-bottom:16px">Carregando...</div>
 <div id="previstos" class="table-scroll"></div>
 </section>
-<section class="card" style="margin-top:16px"><h2>Últimos lançamentos</h2>
+<section class="card" style="margin-top:16px"><h2>Lançamentos (mês)</h2>
 <div class="table-scroll"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
 <tbody id="lancamentos"></tbody></table></div>
 </section>
@@ -233,7 +233,7 @@ async function loadDashboard(){
     document.getElementById("categorias").innerHTML=`<div class="category-chart"><div class="donut" style="background:conic-gradient(${stops})"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
   }
 
-  const lancamentosMes=current.slice(0,20);
+  const lancamentosMes=current;
   document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>`<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td>${esc(r.categoria)}</td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
