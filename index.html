@@ -233,7 +233,8 @@ async function loadDashboard(){
     document.getElementById("categorias").innerHTML=`<div class="category-chart"><div class="donut" style="background:conic-gradient(${stops})"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
   }
 
-  const lancamentosMes=current.slice(0,20);\n  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>`<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td>${esc(r.categoria)}</td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`).join("");
+  const lancamentosMes=current.slice(0,20);
+  document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>`<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td>${esc(r.categoria)}</td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
 </script>
