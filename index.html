@@ -36,7 +36,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}
 .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media(max-width:600px){
-  .wrap{padding:14px}
+  .wrap{padding:calc(14px + env(safe-area-inset-top)) 14px 14px}
   header{align-items:flex-start;gap:14px;flex-direction:column;margin-bottom:18px}
   h1{font-size:24px}
   .top-actions{width:100%;display:grid;grid-template-columns:1fr auto}
