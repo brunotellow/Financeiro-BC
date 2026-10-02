@@ -4,48 +4,114 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Financeiro BC</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#17191c;font-family:Inter,Arial,sans-serif}
-.wrap{max-width:1200px;margin:0 auto;padding:32px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
-h1{margin:0;font-size:28px} .sub{color:#73777d;margin-top:5px}
-select{padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:white}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.card{background:white;border:1px solid #e7e8eb;border-radius:16px;padding:20px}
-.label{color:#777b82;font-size:13px}.value{font-size:25px;font-weight:700;margin-top:8px}
-.main{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px}
-h2{font-size:17px;margin:0 0 18px}.chart{height:260px;display:flex;align-items:end;gap:24px;padding:15px 10px}
-.month{flex:1;text-align:center;color:#777;font-size:12px}.bars{height:205px;display:flex;align-items:end;justify-content:center;gap:7px}
-.bar{width:22px;border-radius:6px 6px 0 0}.in{background:#2f855a}.out{background:#c0392b}
+.wrap{max-width:1200px;margin:0 auto;padding:32px}.login{max-width:420px;margin:12vh auto;background:#fff;padding:32px;border:1px solid #e7e8eb;border-radius:18px}.login h1{margin-top:0}
+input,select{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;background:#fff;margin:7px 0 14px}
+button{padding:12px 16px;border:0;border-radius:10px;background:#17191c;color:#fff;cursor:pointer;width:100%}
+.err{color:#b42318;font-size:13px;margin-top:10px}.hidden{display:none}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}h1{margin:0;font-size:28px}.sub{color:#73777d;margin-top:5px}
+.top-actions{display:flex;gap:10px;align-items:center}.top-actions select{width:auto;margin:0}.logout{width:auto;background:#fff;color:#17191c;border:1px solid #ddd}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{background:white;border:1px solid #e7e8eb;border-radius:16px;padding:20px}.label{color:#777b82;font-size:13px}.value{font-size:25px;font-weight:700;margin-top:8px}
+.main{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px}h2{font-size:17px;margin:0 0 18px}
+.chart{height:260px;display:flex;align-items:end;gap:24px;padding:15px 10px}.month{flex:1;text-align:center;color:#777;font-size:12px}.bars{height:205px;display:flex;align-items:end;justify-content:center;gap:7px}.bar{width:22px;border-radius:6px 6px 0 0}.in{background:#2f855a}.out{background:#c0392b}
 .legend{display:flex;gap:18px;font-size:12px;color:#666;margin-top:8px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}th{color:#777}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 8px;border-bottom:1px solid #eee;font-size:13px}th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header><div><h1>Financeiro BC</h1><div class="sub">Visão geral das suas finanças</div></div>
-<select><option>Outubro 2026</option></select></header>
+
+<div id="login" class="login">
+<h1>Financeiro BC</h1>
+<p class="sub">Entre para acessar seu controle financeiro.</p>
+<label>E-mail</label><input id="email" type="email" autocomplete="email">
+<label>Senha</label><input id="password" type="password" autocomplete="current-password">
+<button onclick="login()">Entrar</button>
+<div id="loginError" class="err"></div>
+</div>
+
+<div id="app" class="wrap hidden">
+<header>
+<div><h1>Financeiro BC</h1><div class="sub">Visão geral das suas finanças</div></div>
+<div class="top-actions"><select id="month" onchange="loadDashboard()"></select><button class="logout" onclick="logout()">Sair</button></div>
+</header>
 <section class="grid">
-<div class="card"><div class="label">Saldo atual</div><div class="value">R$ 405,86</div></div>
-<div class="card"><div class="label">Entradas</div><div class="value">R$ 0,00</div></div>
-<div class="card"><div class="label">Saídas</div><div class="value">R$ 43,00</div></div>
-<div class="card"><div class="label">Resultado do mês</div><div class="value">- R$ 43,00</div></div>
+<div class="card"><div class="label">Saldo atual</div><div id="saldo" class="value">R$ 0,00</div></div>
+<div class="card"><div class="label">Entradas</div><div id="entradas" class="value">R$ 0,00</div></div>
+<div class="card"><div class="label">Saídas</div><div id="saidas" class="value">R$ 0,00</div></div>
+<div class="card"><div class="label">Resultado do mês</div><div id="resultado" class="value">R$ 0,00</div></div>
 </section>
 <section class="main">
-<div class="card"><h2>Entradas x Saídas</h2>
-<div class="chart">
-<div class="month"><div class="bars"><div class="bar in" style="height:0"></div><div class="bar out" style="height:43px"></div></div>Out</div>
-<div class="month"><div class="bars"><div class="bar in" style="height:0"></div><div class="bar out" style="height:0"></div></div>Nov</div>
-<div class="month"><div class="bars"><div class="bar in" style="height:0"></div><div class="bar out" style="height:0"></div></div>Dez</div>
-</div>
-<div class="legend"><span><i class="dot" style="background:#2f855a"></i>Entradas</span><span><i class="dot" style="background:#c0392b"></i>Saídas</span></div>
-</div>
-<div class="card"><h2>Gastos por categoria</h2><div style="font-size:15px;margin-top:35px">Supermercado <strong style="float:right">R$ 43,00</strong></div><div style="height:8px;background:#eee;border-radius:8px;margin-top:10px"><div style="width:100%;height:8px;background:#c0392b;border-radius:8px"></div></div></div>
+<div class="card"><h2>Resumo do mês</h2><div id="resumo">Carregando...</div></div>
+<div class="card"><h2>Gastos por categoria</h2><div id="categorias">Carregando...</div></div>
 </section>
 <section class="card" style="margin-top:16px"><h2>Últimos lançamentos</h2>
 <table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
-<tbody><tr><td>01/10/2026</td><td>Compra no Mercado Genial</td><td>Supermercado</td><td>Saída</td><td>R$ 43,00</td></tr></tbody></table>
+<tbody id="lancamentos"></tbody></table>
 </section>
 </div>
-</body></html>
+
+<script>
+const SUPABASE_URL = "https://ihrdmasgiohptxjozuwg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_SmZv9eBGDpnIMML90H-DNw_HQi63QBi";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+
+async function login(){
+  document.getElementById("loginError").textContent="";
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  const {error}=await client.auth.signInWithPassword({email,password});
+  if(error){document.getElementById("loginError").textContent=error.message;return;}
+  showApp();
+}
+async function logout(){await client.auth.signOut();location.reload();}
+async function showApp(){
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  fillMonths(); await loadDashboard();
+}
+function fillMonths(){
+  const s=document.getElementById("month");s.innerHTML="";
+  const now=new Date();
+  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
+}
+async function loadDashboard(){
+  const month=document.getElementById("month").value;
+  const [y,m]=month.split("-").map(Number);
+  const start=`${month}-01`;
+  const end=new Date(y,m,1).toISOString().slice(0,10);
+
+  const {data:cfg,error:ce}=await client.from("configuracoes_financeiras").select("saldo_inicial").limit(1).single();
+  if(ce){console.error(ce);return;}
+  const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento").order("data",{ascending:false}).order("id",{ascending:false});
+  if(error){document.getElementById("resumo").textContent=error.message;return;}
+
+  const before=rows.filter(r=>r.data<start).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
+  const current=rows.filter(r=>r.data>=start&&r.data<end);
+  const entradas=current.filter(r=>r.tipo==="entrada").reduce((a,r)=>a+Number(r.valor),0);
+  const saidas=current.filter(r=>r.tipo==="saida").reduce((a,r)=>a+Number(r.valor),0);
+  const saldoInicial=Number(cfg.saldo_inicial||0);
+  const saldo=saldoInicial+before+entradas-saidas;
+  document.getElementById("saldo").textContent=money(saldo);
+  document.getElementById("entradas").textContent=money(entradas);
+  document.getElementById("saidas").textContent=money(saidas);
+  document.getElementById("resultado").textContent=money(entradas-saidas);
+  document.getElementById("resultado").className="value "+((entradas-saidas)>=0?"positive":"negative");
+
+  document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial cadastrado: <b>${money(saldoInicial)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
+
+  const cats={};current.filter(r=>r.tipo==="saida").forEach(r=>cats[r.categoria||"Outros"]=(cats[r.categoria||"Outros"]||0)+Number(r.valor));
+  const total=Object.values(cats).reduce((a,b)=>a+b,0);
+  document.getElementById("categorias").innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div style="margin:12px 0"><div>${esc(c)} <strong style="float:right">${money(v)}</strong></div><div style="height:8px;background:#eee;border-radius:8px;margin-top:7px"><div style="width:${total?Math.round(v/total*100):0}%;height:8px;background:#c0392b;border-radius:8px"></div></div></div>`).join("")||"<span class='sub'>Nenhuma saída neste mês.</span>";
+
+  document.getElementById("lancamentos").innerHTML=rows.slice(0,20).map(r=>`<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(r.descricao)}</td><td>${esc(r.categoria)}</td><td>${r.tipo==="entrada"?"Entrada":"Saída"}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td></tr>`).join("");
+}
+client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
+</script>
+</body>
+</html>
