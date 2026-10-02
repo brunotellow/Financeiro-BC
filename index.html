@@ -271,7 +271,7 @@ async function loadDashboard(){
     document.getElementById("categorias").innerHTML=`<div class="category-chart"><div id="${donutId}" class="donut donut-intro"><div class="donut-center">${money(total)}</div></div><div class="category-legend">${legend}</div></div>`;
     const donut=document.getElementById(donutId);
     const introPlayed=window.dashboardIntroActive===true;
-    if(!introPlayed){
+    if(introPlayed){
       donut.style.background="conic-gradient(#dfe4ea 0deg 360deg)";
       const duration=3200, startTime=performance.now();
       const animateDonut=(now)=>{
