@@ -70,10 +70,10 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
   .logout{width:100%}
 }th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
- .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.dashboard-animate{opacity:0;transform:translateY(18px) scale(.985);animation:dashboardIn .65s cubic-bezier(.22,.8,.28,1) forwards}
+ .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.dashboard-animate{opacity:0;transform:translateY(18px) scale(.985);animation:dashboardIn 1.05s cubic-bezier(.22,.75,.28,1) forwards}
 @keyframes dashboardIn{to{opacity:1;transform:translateY(0) scale(1)}}
 .donut-intro{animation:donutIn 1.8s cubic-bezier(.2,.75,.25,1) forwards;transform-origin:center}
-@keyframes donutIn{0%{opacity:0;transform:scale(.72) rotate(-90deg)}55%{opacity:1;transform:scale(1.03) rotate(18deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
+@keyframes donutIn{0%{opacity:0;transform:scale(.72) rotate(-90deg)}60%{opacity:1;transform:scale(1.03) rotate(22deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
 @media(prefers-reduced-motion:reduce){.dashboard-animate,.donut-intro{animation:none!important;opacity:1!important;transform:none!important}}.mov-arrow{font-weight:800;font-size:16px;display:inline-block;line-height:1}.mov-arrow.entrada{color:#2f855a}.mov-arrow.saida{color:#c0392b}.categoria-tag{display:inline-block;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:5px 9px;border-radius:999px}</style>
 </head>
 <body>
@@ -174,10 +174,10 @@ function playDashboardIntro(){
   window.dashboardIntroActive=true;
   const blocks=[
     ["#dashboardGrid",0],
-    ["#dashboardMain",.14],
-    ["#dashboardEntradas",.28],
-    ["#dashboardGastos",.42],
-    ["#dashboardLancamentos",.56]
+    ["#dashboardMain",.32],
+    ["#dashboardEntradas",.64],
+    ["#dashboardGastos",.96],
+    ["#dashboardLancamentos",1.28]
   ];
   blocks.forEach(([sel,delay])=>{
     const el=document.querySelector(sel);
@@ -273,7 +273,7 @@ async function loadDashboard(){
     const introPlayed=window.dashboardIntroActive===true;
     if(!introPlayed){
       donut.style.background="conic-gradient(#dfe4ea 0deg 360deg)";
-      const duration=1800, startTime=performance.now();
+      const duration=3200, startTime=performance.now();
       const animateDonut=(now)=>{
         const progress=Math.min((now-startTime)/duration,1);
         const eased=1-Math.pow(1-progress,3);
