@@ -184,7 +184,7 @@ async function loadDashboard(){
     ? `Total previsto para este mês: <b class="positive">${money(totalEntradaPrevista)}</b> · ${entradasPrevistasMes.length} recebimento(s) pendente(s)`
     : "Nenhuma entrada prevista pendente para este mês.";
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
-    ? `<table><thead><tr><th>Previsão</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
+    ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
         return `<tr><td>${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(p.categoria||"")}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
       }).join("")}</tbody></table>`
