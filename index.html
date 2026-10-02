@@ -207,7 +207,7 @@ async function loadDashboard(){
   const total=Object.values(cats).reduce((a,b)=>a+b,0);
   const categoryColors={
     dividas:"#E05252",dívidas:"#E05252",
-    supermercado:"#F2A93B",
+    supermercado:"#F2A93B",mercado:"#F2A93B",
     doação:"#5FBF8F",doacoes:"#5FBF8F",
     saude:"#35B7A8",saúde:"#35B7A8",
     transferencia:"#6F8FEA",transferência:"#6F8FEA",
@@ -237,6 +237,7 @@ async function loadDashboard(){
   const categoryLabel=c=>{
     const key=String(c||"outros").toLowerCase().trim();
     const labels={
+      mercado:"Mercado",supermercado:"Mercado",
       dividas:"Dívidas",dívidas:"Dívidas",
       doação:"Doação",doacoes:"Doação",
       saude:"Saúde",saúde:"Saúde",
