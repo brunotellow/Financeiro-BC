@@ -149,7 +149,7 @@ async function loadDashboard(){
 
   const {data:cfg,error:ce}=await client.from("configuracoes_financeiras").select("saldo_inicial").limit(1).single();
   if(ce){console.error(ce);return;}
-  const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento").order("data",{ascending:false}).order("id",{ascending:false});
+  const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento,afeta_saldo").order("data",{ascending:false}).order("id",{ascending:false});
   if(error){document.getElementById("resumo").textContent=error.message;return;}
 
   const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").eq("status","pendente").order("data_prevista",{ascending:true}).order("id",{ascending:true});
@@ -164,13 +164,13 @@ async function loadDashboard(){
     document.getElementById("previstos").innerHTML="";
   }
 
-  const before=rows.filter(r=>r.data<start).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
+  const before=rows.filter(r=>r.data<start&&r.afeta_saldo!==false).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
   const current=rows.filter(r=>r.data>=start&&r.data<end);
   const cashback=current.filter(r=>r.tipo==="entrada"&&r.categoria==="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const entradas=current.filter(r=>r.tipo==="entrada"&&r.categoria!=="cashback").reduce((a,r)=>a+Number(r.valor),0);
   const saidas=current.filter(r=>r.tipo==="saida").reduce((a,r)=>a+Number(r.valor),0);
   const saldoInicial=Number(cfg.saldo_inicial||0);
-  const saldo=saldoInicial+before+entradas+cashback-saidas;
+  const saldo=saldoInicial+rows.filter(r=>r.afeta_saldo!==false).reduce((a,r)=>a+(r.tipo==="entrada"?Number(r.valor):-Number(r.valor)),0);
   document.getElementById("saldo").textContent=money(saldo);
   document.getElementById("entradas").textContent=money(entradas);
   document.getElementById("saidas").textContent=money(saidas);
