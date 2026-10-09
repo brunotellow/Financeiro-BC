@@ -198,7 +198,7 @@ async function loadDashboard(){
   const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento,afeta_saldo").order("data",{ascending:false}).order("id",{ascending:false});
   if(error){document.getElementById("resumo").textContent=error.message;return;}
 
-  const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").in("status",["pendente","recebido"]).order("data_prevista",{ascending:true}).order("id",{ascending:true});
+  const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status,recebido_em,lancamento_id").in("status",["pendente","recebido"]).order("data_prevista",{ascending:true}).order("id",{ascending:true});
   if(epe){
     document.getElementById("entradasPrevistasResumo").textContent="Não foi possível carregar as entradas previstas.";
     document.getElementById("entradasPrevistas").innerHTML="";
@@ -224,7 +224,7 @@ async function loadDashboard(){
   document.getElementById("resultado").textContent=money(resultado);
   document.getElementById("resultado").className="value "+(resultado>=0?"positive":"negative");
 
-  const entradasPrevistasMes=(entradasPrevistas||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
+  const entradasPrevistasMes=(entradasPrevistas||[]).filter(p=>(p.data_prevista>=start&&p.data_prevista<end)||(p.status==="recebido"&&p.recebido_em>=start&&p.recebido_em<end)).sort((a,b)=>{const aRecebido=a.status==="recebido"?0:1;const bRecebido=b.status==="recebido"?0:1;if(aRecebido!==bRecebido)return aRecebido-bRecebido;const aData=a.status==="recebido"?(a.recebido_em||a.data_prevista):a.data_prevista;const bData=b.status==="recebido"?(b.recebido_em||b.data_prevista):b.data_prevista;return aData.localeCompare(bData)||a.id-b.id;});
   const entradasPendentesMes=entradasPrevistasMes.filter(p=>p.status==="pendente");
   const totalEntradaPrevista=entradasPendentesMes.reduce((a,p)=>a+Number(p.valor),0);
   document.getElementById("entradasPrevistasResumo").innerHTML=entradasPendentesMes.length
@@ -233,7 +233,7 @@ async function loadDashboard(){
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td>${p.status==="recebido"?'<button class="received-button" disabled>✓ Recebido</button>':`<button onclick="confirmarEntradaPrevista(${p.id},this)">Recebido</button>`}</td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(((p.status==="recebido"&&p.recebido_em)?p.recebido_em:p.data_prevista)+"T12:00:00").toLocaleDateString("pt-BR")}${p.status==="recebido"?' <small>(recebido)</small>':""}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td>${p.status==="recebido"?'<button class="received-button" disabled>✓ Recebido</button>':`<button onclick="confirmarEntradaPrevista(${p.id},this)">Recebido</button>`}</td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
