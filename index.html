@@ -69,7 +69,7 @@ table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;
   .grid{grid-template-columns:1fr}
   .top-actions{grid-template-columns:1fr}
   .logout{width:100%}
-}th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}
+}th{color:#777}.positive{color:#2f855a}.negative{color:#c0392b}.received-button{background:#2f855a!important;color:#fff!important;opacity:1;cursor:default}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.wrap{padding:18px}}
  .versiculo{margin-top:6px;font-size:13px;line-height:1.5;opacity:.72;max-width:720px}.versiculo span{white-space:nowrap}.lancamento-desc{font-weight:600;margin-bottom:5px}.dashboard-animate{opacity:0;transform:translateY(18px) scale(.985);animation:dashboardIn 1.05s cubic-bezier(.22,.75,.28,1) forwards}
 @keyframes dashboardIn{to{opacity:1;transform:translateY(0) scale(1)}}
@@ -198,7 +198,7 @@ async function loadDashboard(){
   const {data:rows,error}=await client.from("lancamentos").select("id,tipo,valor,descricao,categoria,data,forma_pagamento,afeta_saldo").order("data",{ascending:false}).order("id",{ascending:false});
   if(error){document.getElementById("resumo").textContent=error.message;return;}
 
-  const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").eq("status","pendente").order("data_prevista",{ascending:true}).order("id",{ascending:true});
+  const {data:entradasPrevistas,error:epe}=await client.from("entradas_previstas").select("id,descricao,valor,categoria,data_prevista,parcelado,parcela_atual,total_parcelas,status").in("status",["pendente","recebido"]).order("data_prevista",{ascending:true}).order("id",{ascending:true});
   if(epe){
     document.getElementById("entradasPrevistasResumo").textContent="Não foi possível carregar as entradas previstas.";
     document.getElementById("entradasPrevistas").innerHTML="";
@@ -225,14 +225,15 @@ async function loadDashboard(){
   document.getElementById("resultado").className="value "+(resultado>=0?"positive":"negative");
 
   const entradasPrevistasMes=(entradasPrevistas||[]).filter(p=>p.data_prevista>=start&&p.data_prevista<end);
-  const totalEntradaPrevista=entradasPrevistasMes.reduce((a,p)=>a+Number(p.valor),0);
-  document.getElementById("entradasPrevistasResumo").innerHTML=entradasPrevistasMes.length
-    ? `Total previsto para este mês: <b class="positive">${money(totalEntradaPrevista)}</b> · ${entradasPrevistasMes.length} recebimento(s) pendente(s)`
+  const entradasPendentesMes=entradasPrevistasMes.filter(p=>p.status==="pendente");
+  const totalEntradaPrevista=entradasPendentesMes.reduce((a,p)=>a+Number(p.valor),0);
+  document.getElementById("entradasPrevistasResumo").innerHTML=entradasPendentesMes.length
+    ? `Total previsto para este mês: <b class="positive">${money(totalEntradaPrevista)}</b> · ${entradasPendentesMes.length} recebimento(s) pendente(s)`
     : "Nenhuma entrada prevista pendente para este mês.";
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td><button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button></td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td>${p.status==="recebido"?'<button class="received-button" disabled>✓ Recebido</button>':`<button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button>`}</td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
