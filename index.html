@@ -313,24 +313,21 @@ async function confirmarEntradaPrevista(id,botao){
   if(botao?.disabled)return;
   if(!confirm("Registrar esta entrada como recebida?")) return;
   if(botao){botao.disabled=true;botao.textContent="Processando...";}
-  const {data:p,error:e}=await client.from("entradas_previstas").select("*").eq("id",id).single();
-  if(e||!p){alert("Não foi possível localizar a entrada prevista.");if(botao){botao.disabled=false;botao.textContent="Recebido";}return;}
-  if(p.status!=="pendente"||p.lancamento_id){
-    alert("Esta entrada já foi recebida e não será registrada novamente.");
-    await loadDashboard();
+  const partesData=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const mapaData=Object.fromEntries(partesData.map(p=>[p.type,p.value]));
+  const hoje=`${mapaData.year}-${mapaData.month}-${mapaData.day}`;
+  const {data:resultado,error}=await client.rpc("receber_entrada_prevista",{p_id:id,p_data:hoje});
+  if(error){
+    alert("Não foi possível confirmar o recebimento: "+error.message);
+    if(botao){botao.disabled=false;botao.textContent="Recebido";}
     return;
   }
-  const hoje=new Date().toISOString().slice(0,10);
-  const {data:l,error:le}=await client.from("lancamentos").insert({tipo:"entrada",valor:p.valor,descricao:p.descricao,categoria:p.categoria||"Receita",data:hoje,parcelado:p.parcelado||false,parcela_atual:p.parcela_atual||null,total_parcelas:p.total_parcelas||null,afeta_saldo:true}).select("id").single();
-  if(le||!l){alert("Não foi possível criar o lançamento.");if(botao){botao.disabled=false;botao.textContent="Recebido";}return;}
-  const {data:updated,error:ue}=await client.from("entradas_previstas").update({status:"recebido",recebido_em:hoje,lancamento_id:l.id}).eq("id",id).eq("status","pendente").is("lancamento_id",null).select("id").maybeSingle();
-  if(ue||!updated){
-    alert("O lançamento foi criado, mas não foi possível confirmar a baixa da previsão. Confira antes de tentar novamente para evitar duplicidade.");
-    await loadDashboard();
-    return;
+  if(resultado?.already_received){
+    alert("Esta entrada já foi recebida. Nenhum lançamento duplicado foi criado.");
   }
   await loadDashboard();
 }
+
 async function confirmarGastoPrevisto(id){
   if(!confirm("Registrar este gasto como pago?")) return;
   const {data:p,error:e}=await client.from("gastos_previstos").select("*").eq("id",id).single();
