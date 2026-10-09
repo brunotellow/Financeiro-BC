@@ -233,7 +233,7 @@ async function loadDashboard(){
   document.getElementById("entradasPrevistas").innerHTML=entradasPrevistasMes.length
     ? `<table><thead><tr><th>Descrição</th><th>Previsão</th><th>Categoria</th><th>Valor</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${entradasPrevistasMes.map(p=>{
         const parcela=p.parcelado&&p.parcela_atual&&p.total_parcelas?`${p.parcela_atual}/${p.total_parcelas}`:"—";
-        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td>${p.status==="recebido"?'<button class="received-button" disabled>✓ Recebido</button>':`<button onclick="confirmarEntradaPrevista(${p.id})">Recebido</button>`}</td></tr>`;
+        const cat=String(p.categoria||"Outros"); const cor=categoryColor(cat); return `<tr><td><span class="mov-arrow entrada">↑</span> ${esc(p.descricao)}</td><td>${new Date(p.data_prevista+"T12:00:00").toLocaleDateString("pt-BR")}</td><td>${esc(categoryLabel(cat))}</td><td class="positive">+ ${money(p.valor)}</td><td>${parcela}</td><td>${p.status==="recebido"?'<button class="received-button" disabled>✓ Recebido</button>':`<button onclick="confirmarEntradaPrevista(${p.id},this)">Recebido</button>`}</td></tr>`;
       }).join("")}</tbody></table>`
     : "";
 
@@ -309,15 +309,26 @@ async function loadDashboard(){
   window.dashboardIntroActive=false;
 }
 
-async function confirmarEntradaPrevista(id){
+async function confirmarEntradaPrevista(id,botao){
+  if(botao?.disabled)return;
   if(!confirm("Registrar esta entrada como recebida?")) return;
+  if(botao){botao.disabled=true;botao.textContent="Processando...";}
   const {data:p,error:e}=await client.from("entradas_previstas").select("*").eq("id",id).single();
-  if(e||!p){alert("Não foi possível localizar a entrada prevista.");return;}
+  if(e||!p){alert("Não foi possível localizar a entrada prevista.");if(botao){botao.disabled=false;botao.textContent="Recebido";}return;}
+  if(p.status!=="pendente"||p.lancamento_id){
+    alert("Esta entrada já foi recebida e não será registrada novamente.");
+    await loadDashboard();
+    return;
+  }
   const hoje=new Date().toISOString().slice(0,10);
   const {data:l,error:le}=await client.from("lancamentos").insert({tipo:"entrada",valor:p.valor,descricao:p.descricao,categoria:p.categoria||"Receita",data:hoje,parcelado:p.parcelado||false,parcela_atual:p.parcela_atual||null,total_parcelas:p.total_parcelas||null,afeta_saldo:true}).select("id").single();
-  if(le||!l){alert("Não foi possível criar o lançamento.");return;}
-  const {error:ue}=await client.from("entradas_previstas").update({status:"recebido",recebido_em:hoje,lancamento_id:l.id}).eq("id",id);
-  if(ue){alert("O lançamento foi criado, mas não foi possível dar baixa na previsão: "+ue.message);return;}
+  if(le||!l){alert("Não foi possível criar o lançamento.");if(botao){botao.disabled=false;botao.textContent="Recebido";}return;}
+  const {data:updated,error:ue}=await client.from("entradas_previstas").update({status:"recebido",recebido_em:hoje,lancamento_id:l.id}).eq("id",id).eq("status","pendente").is("lancamento_id",null).select("id").maybeSingle();
+  if(ue||!updated){
+    alert("O lançamento foi criado, mas não foi possível confirmar a baixa da previsão. Confira antes de tentar novamente para evitar duplicidade.");
+    await loadDashboard();
+    return;
+  }
   await loadDashboard();
 }
 async function confirmarGastoPrevisto(id){
