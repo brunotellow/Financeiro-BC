@@ -168,7 +168,9 @@ async function showApp(){
 function fillMonths(){
   const s=document.getElementById("month");s.innerHTML="";
   const now=new Date();
-  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
+  // Mostrar o mês atual e os próximos 11 meses, para permitir consultar previsões futuras.
+  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
+  const current=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;s.value=current;
 }
 function playDashboardIntro(){
   if(window.dashboardIntroPlayed)return;
