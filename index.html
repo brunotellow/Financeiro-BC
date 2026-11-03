@@ -163,14 +163,36 @@ async function logout(){await client.auth.signOut();location.reload();}
 async function showApp(){
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  fillMonths(); playDashboardIntro(); await loadDashboard();
+  await fillMonths(); playDashboardIntro(); await loadDashboard();
 }
-function fillMonths(){
+async function fillMonths(){
   const s=document.getElementById("month");s.innerHTML="";
   const now=new Date();
-  // Mostrar o mês atual e os próximos 23 meses, para permitir consultar previsões futuras.
-  for(let i=0;i<24;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1);const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});s.appendChild(o);}
-  const current=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;s.value=current;
+  const months=new Set();
+
+  // Manter sempre uma janela de 12 meses começando no mês anterior,
+  // além de todos os meses que já tenham lançamentos registrados.
+  const firstMonth=new Date(now.getFullYear(),now.getMonth()-1,1);
+  for(let i=0;i<12;i++){
+    const d=new Date(firstMonth.getFullYear(),firstMonth.getMonth()+i,1);
+    months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+  }
+
+  const {data:rows,error}=await client.from("lancamentos").select("data").order("data",{ascending:true});
+  if(error)console.error("Não foi possível carregar todos os meses com lançamentos:",error);
+  (rows||[]).forEach(r=>{if(r.data)months.add(String(r.data).slice(0,7));});
+
+  [...months].sort().forEach(v=>{
+    const [year,month]=v.split("-").map(Number);
+    const d=new Date(year,month-1,1);
+    const o=document.createElement("option");
+    o.value=v;
+    o.textContent=d.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+    s.appendChild(o);
+  });
+
+  const current=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  s.value=current;
 }
 function playDashboardIntro(){
   if(window.dashboardIntroPlayed)return;
