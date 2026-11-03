@@ -275,7 +275,7 @@ async function loadDashboard(){
     : "";
   const mesAnterior=new Date(y,m-1,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
   const saldoFinalAnterior=saldoInicial+before;
-  document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo final de ${mesAnterior}: <b>${money(saldoFinalAnterior)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
+  document.getElementById("resumo").innerHTML=`<div style="line-height:2">Saldo inicial de ${new Date(y,m-1,1).toLocaleDateString("pt-BR",{month:"long"})}: <b>${money(saldoFinalAnterior)}</b><br>Movimentação anterior: <b>${money(before)}</b><br>Entradas no mês: <b class="positive">${money(entradas)}</b><br>Cashback no mês: <b class="positive">${money(cashback)}</b><br>Saídas no mês: <b class="negative">${money(saidas)}</b></div>`;
 
   const cats={};current.filter(r=>r.tipo==="saida").forEach(r=>cats[r.categoria||"Outros"]=(cats[r.categoria||"Outros"]||0)+Number(r.valor));
   const total=Object.values(cats).reduce((a,b)=>a+b,0);
