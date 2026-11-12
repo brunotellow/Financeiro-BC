@@ -371,11 +371,12 @@ function renderLancamentos(){
   const rows=window.lancamentosMes||[];
   const filtro=document.getElementById("filtroCategoria")?.value||"";
   const lancamentosMes=rows.filter(r=>!filtro||String(r.categoria||"Outros")===filtro);
-  const totalGastos=lancamentosMes.filter(r=>r.tipo==="saida").reduce((s,r)=>s+Number(r.valor||0),0);
+  const mostrarReceitas=String(filtro).toLowerCase()==="receita";
+  const totalFiltrado=lancamentosMes.filter(r=>mostrarReceitas?r.tipo==="entrada":r.tipo==="saida").reduce((s,r)=>s+Number(r.valor||0),0);
   const label=document.getElementById("totalLancamentosLabel");
   const valor=document.getElementById("totalLancamentosValor");
-  if(label)label.textContent=filtro?`Total gasto em ${categoryLabel(filtro)}`:"Total de gastos no mês";
-  if(valor)valor.textContent=money(totalGastos);
+  if(label)label.textContent=mostrarReceitas?"Total de receitas":(filtro?`Total gasto em ${categoryLabel(filtro)}`:"Total de gastos no mês");
+  if(valor)valor.textContent=money(totalFiltrado);
   document.getElementById("lancamentos").innerHTML=lancamentosMes.map(r=>{const cat=String(r.categoria||"Outros");const cor=categoryColor(cat);return `<tr><td>${new Date(r.data+"T12:00:00").toLocaleDateString("pt-BR")}</td><td><span class="mov-arrow ${r.tipo==="entrada"?"entrada":"saida"}">${r.tipo==="entrada"?"↑":"↓"}</span> ${esc(r.descricao)}</td><td class="${r.tipo==="entrada"?"positive":"negative"}">${r.tipo==="entrada"?"+":"-"} ${money(r.valor)}</td><td><span class="categoria-tag" style="background:${cor}">${esc(categoryLabel(cat))}</span></td></tr>`}).join("");
 }
 client.auth.getSession().then(({data:{session}})=>{if(session)showApp();});
